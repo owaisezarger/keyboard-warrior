@@ -17,23 +17,49 @@ userRouter.get("/", async (req, res) => {
   }
 });
 
+// userRouter.post("/register", async (req, res) => {
+//   const { name, email, password } = req.body;
+//   try {
+//     bcrypt.hash(password, 5, async (err, hash) => {
+//       if (err) res.send({ msg: "Something went wrong", error: err.message });
+//       else {
+//         const user = new UserModel({
+//           name,
+//           email,
+//           password: hash,
+//         });
+//         await user.save();
+//         res.send({ msg: "New Users has been register" });
+//       }
+//     });
+//   } catch (err) {
+//     res.send({ msg: "Something went wrong", error: err.message });
+//   }
+// });
+
 userRouter.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
   try {
-    bcrypt.hash(password, 5, async (err, hash) => {
-      if (err) res.send({ msg: "Something went wrong", error: err.message });
-      else {
-        const user = new UserModel({
-          name,
-          email,
-          password: hash,
-        });
-        await user.save();
-        res.send({ msg: "New Users has been register" });
-      }
-    });
-  } catch (err) {
-    res.send({ msg: "Something went wrong", error: err.message });
+    let isExist = await UserModel.find({ email });
+    if (isExist.length > 0) {
+      res.send("User already exist, please login");
+    } else {
+      bcrypt.hash(password, 5, async function (err, secure_password) {
+        if (err) {
+          res.send({ err: err });
+        } else {
+          const user = new UserModel({
+            name,
+            email,
+            password: secure_password,
+          });
+          await user.save();
+          res.send({ msg: "User registered Successfully" });
+        }
+      });
+    }
+  } catch (error) {
+    res.send({ err: error.message });
   }
 });
 
